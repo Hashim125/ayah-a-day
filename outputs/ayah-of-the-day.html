@@ -1,0 +1,63 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ayah of the Day</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .font-amiri {
+            font-family: 'Amiri', serif;
+        }
+        /* Basic styling for preserved HTML elements within the tafsir section */
+        .tafsir p, .tafsir h2, .tafsir div {
+            margin-bottom: 1em; /* Add some spacing between paragraphs/headings within tafsir */
+        }
+        .tafsir h2 {
+            font-size: 1.5em; /* Make h2 within tafsir larger */
+            font-weight: bold;
+            margin-top: 1.5em; /* More space above headings */
+            color: #374151; /* Darker text for headings within tafsir */
+        }
+        /* Further refinement for 'gray' class within tafsir if it somehow persists or is needed for other elements */
+        .tafsir .gray {
+            color: #6b7280; /* A softer gray for specific text if it needs to be less prominent */
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen flex items-center justify-center p-4">
+    <main class="bg-white shadow-2xl rounded-xl p-8 max-w-2xl w-full mx-auto my-8 border border-gray-200">
+        <h1 class="text-center text-4xl font-extrabold text-indigo-800 mb-6 drop-shadow-sm">Ayah of the Day</h1>
+
+        <section class="text-center mb-8 bg-gray-50 p-6 rounded-lg shadow-inner">
+            <p lang="ar" dir="rtl" class="font-amiri text-4xl leading-relaxed text-gray-900 mb-4 font-bold">
+                لَهُمۡ فِيهَا زَفِيرٞ وَهُمۡ فِيهَا لَا يَسۡمَعُونَ ١٠٠
+            </p>
+            <p class="text-lg text-indigo-600 font-medium">
+                Sūrah 21 - Āyah 100 (21:100)
+            </p>
+        </section>
+
+        <section class="mb-8">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-3 border-b-2 border-indigo-200 pb-2">Translation (English)</h2>
+            <p class="text-lg text-gray-700 leading-relaxed">
+                For them, there will be screams in it and they will not hear.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="text-2xl font-semibold text-gray-800 mb-3 border-b-2 border-indigo-200 pb-2">Tafsir (English)</h2>
+            <div class="tafsir text-base text-gray-600 leading-relaxed space-y-3">
+                21:98
+            </div>
+        </section>
+    </main>
+</body>
+</html>
