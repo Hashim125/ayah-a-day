@@ -416,6 +416,20 @@ BASE_TEMPLATE = '''
                 showNotification('Some features may be limited due to network issues');
             }
         });
+        
+        // Toggle collapsible search result cards
+        function toggleCard(cardId) {
+            const card = document.getElementById(cardId);
+            const icon = document.getElementById('icon-' + cardId.replace('card-', ''));
+            
+            if (card.classList.contains('hidden')) {
+                card.classList.remove('hidden');
+                icon.style.transform = 'rotate(180deg)';
+            } else {
+                card.classList.add('hidden');
+                icon.style.transform = 'rotate(0deg)';
+            }
+        }
     </script>
 </body>
 </html>
@@ -587,22 +601,68 @@ def search_page():
                 tafsir_section = '<div class="mt-4"><p class="text-sm text-gray-500 italic">No commentary available</p></div>'
             
             search_content += f'''
-            <div class="bg-white rounded-xl shadow-lg p-6">
-                <div class="text-center mb-4">
-                    <p class="font-amiri text-2xl leading-relaxed text-gray-900 mb-2" dir="rtl">
-                        {verse['clean_ayah_text']}
-                    </p>
-                    <p class="text-indigo-600 font-medium">
-                        Sūrah {verse['surah_number']}, Āyah {verse['ayah_number']} ({verse['verse_key']})
-                    </p>
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                <!-- Card Header - Always Visible -->
+                <div class="p-4 cursor-pointer hover:bg-gray-50 transition-colors" onclick="toggleCard('card-{verse['verse_key'].replace(':', '-')}')">
+                    <div class="flex justify-between items-center">
+                        <div class="flex-1">
+                            <p class="font-amiri text-xl text-gray-900 mb-1" dir="rtl">
+                                {verse['clean_ayah_text'][:100]}{'...' if len(verse['clean_ayah_text']) > 100 else ''}
+                            </p>
+                            <p class="text-indigo-600 font-medium text-sm">
+                                Sūrah {verse['surah_number']}, Āyah {verse['ayah_number']} ({verse['verse_key']})
+                            </p>
+                            <p class="text-gray-600 text-sm mt-1">
+                                {verse['translation_text'][:150]}{'...' if len(verse['translation_text']) > 150 else ''}
+                            </p>
+                        </div>
+                        <div class="ml-4">
+                            <svg class="w-5 h-5 text-gray-400 transform transition-transform duration-200" id="icon-{verse['verse_key'].replace(':', '-')}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </div>
+                    </div>
                 </div>
                 
-                <div class="mb-3">
-                    <h4 class="font-medium text-gray-800 mb-2">Translation</h4>
-                    <p class="text-gray-700">{verse['translation_text']}</p>
+                <!-- Card Content - Collapsible -->
+                <div class="hidden border-t bg-gray-50" id="card-{verse['verse_key'].replace(':', '-')}">
+                    <div class="p-6">
+                        <!-- Full Arabic Text -->
+                        <div class="text-center mb-6 bg-white p-4 rounded-lg">
+                            <p class="font-amiri text-2xl leading-relaxed text-gray-900 mb-3" dir="rtl">
+                                {verse['clean_ayah_text']}
+                            </p>
+                            <p class="text-indigo-600 font-medium">
+                                Sūrah {verse['surah_number']}, Āyah {verse['ayah_number']} ({verse['verse_key']})
+                            </p>
+                        </div>
+                        
+                        <!-- Full Translation -->
+                        <div class="mb-4">
+                            <h4 class="font-medium text-gray-800 mb-2 flex items-center">
+                                <span class="w-2 h-2 bg-indigo-500 rounded-full mr-2"></span>
+                                Translation
+                            </h4>
+                            <p class="text-gray-700 leading-relaxed">{verse['translation_text']}</p>
+                        </div>
+                        
+                        <!-- Action Buttons -->
+                        <div class="flex flex-wrap gap-2 mb-4">
+                            <button onclick="toggleBookmark('{verse['verse_key']}')" id="bookmark-btn-{verse['verse_key']}" class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-medium py-1 px-3 rounded border border-gray-300 transition duration-300">
+                                <span id="bookmark-icon-{verse['verse_key']}">☆</span> Bookmark
+                            </button>
+                            <button onclick="copyVerseLink('{verse['verse_key']}')" class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-medium py-1 px-3 rounded border border-gray-300 transition duration-300">
+                                📋 Copy Link
+                            </button>
+                            <a href="/verse/{verse['verse_key']}" class="bg-indigo-100 hover:bg-indigo-200 text-indigo-700 text-xs font-medium py-1 px-3 rounded border border-indigo-300 transition duration-300">
+                                🔗 View Full Page
+                            </a>
+                        </div>
+                        
+                        <!-- Tafsir -->
+                        {tafsir_section}
+                    </div>
                 </div>
-                
-                {tafsir_section}
             </div>
             '''
         
