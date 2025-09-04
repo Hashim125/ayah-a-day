@@ -670,16 +670,18 @@ def verse_permalink(verse_key):
                                 navigation=NAVIGATION,
                                 content=content)
 
+# Load data when module is imported (for production)
+print("Loading Quran data...")
+if load_data():
+    print(f"✅ Ready! Loaded {len(unified_data)} verses")
+    print("💡 Note: Tafsir references are automatically resolved for complete commentary")
+else:
+    print("❌ Failed to load data. Please check your JSON files in the 'data' directory.")
+
 if __name__ == '__main__':
-    print("Loading Quran data...")
-    if load_data():
-        print(f"✅ Ready! Loaded {len(unified_data)} verses")
-        print("🌐 Starting web server...")
-        print("📱 Visit: http://localhost:5000")
-        print("   📅 Home: Verse of the Day (same for everyone)")
-        print("   🎲 /random: Random Ayah Generator")  
-        print("   🔍 /search: Search Verses")
-        print("💡 Note: Tafsir references are automatically resolved for complete commentary")
-        app.run(debug=True, host='0.0.0.0')
-    else:
-        print("❌ Failed to load data. Please check your JSON files in the 'data' directory.")
+    print("🌐 Starting development server...")
+    print("📱 Visit: http://localhost:5000")
+    print("   📅 Home: Verse of the Day (same for everyone)")
+    print("   🎲 /random: Random Ayah Generator")  
+    print("   🔍 /search: Search Verses")
+    app.run(debug=True, host='0.0.0.0')
