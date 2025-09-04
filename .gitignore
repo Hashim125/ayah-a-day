@@ -1,0 +1,15 @@
+# Large data files - these are too big for GitHub
+data/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.env
+.DS_Store
+*.log
+
+# Note: Users need to download data files separately
+# Instructions in README.md for getting the JSON files

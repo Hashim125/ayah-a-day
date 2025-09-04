@@ -1,0 +1,191 @@
+version: '3.8'
+
+services:
+  # Main web application
+  ayah-app:
+    build:
+      context: .
+      target: production
+    container_name: ayah-app
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=production
+      - SECRET_KEY=${SECRET_KEY:-change-me-in-production}
+      - MAIL_SERVER=${MAIL_SERVER:-smtp.gmail.com}
+      - MAIL_PORT=${MAIL_PORT:-587}
+      - MAIL_USE_TLS=${MAIL_USE_TLS:-True}
+      - MAIL_USERNAME=${MAIL_USERNAME}
+      - MAIL_PASSWORD=${MAIL_PASSWORD}
+      - MAIL_DEFAULT_SENDER=${MAIL_DEFAULT_SENDER:-noreply@ayahapp.com}
+      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=postgresql://ayah_user:${DB_PASSWORD:-ayah_pass}@postgres:5432/ayah_db
+    volumes:
+      - ./data:/app/data:ro
+      - ayah_cache:/app/cache
+      - ayah_logs:/app/logs
+    depends_on:
+      - redis
+      - postgres
+    networks:
+      - ayah-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Redis for caching and session storage
+  redis:
+    image: redis:7-alpine
+    container_name: ayah-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --maxmemory 128mb --maxmemory-policy allkeys-lru
+    volumes:
+      - ayah_redis_data:/data
+    networks:
+      - ayah-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  # PostgreSQL for user data and subscriptions
+  postgres:
+    image: postgres:15-alpine
+    container_name: ayah-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ayah_db
+      POSTGRES_USER: ayah_user
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-ayah_pass}
+    volumes:
+      - ayah_postgres_data:/var/lib/postgresql/data
+      - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - ayah-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ayah_user -d ayah_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Nginx reverse proxy and static file serving
+  nginx:
+    image: nginx:alpine
+    container_name: ayah-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./static:/var/www/static:ro
+      - ./ssl:/etc/nginx/ssl:ro
+      - ayah_logs:/var/log/nginx
+    depends_on:
+      - ayah-app
+    networks:
+      - ayah-network
+
+  # Celery worker for background tasks
+  celery-worker:
+    build:
+      context: .
+      target: production
+    container_name: ayah-celery-worker
+    restart: unless-stopped
+    command: celery -A src.ayah_app.celery_app worker --loglevel=info --concurrency=2
+    environment:
+      - FLASK_ENV=production
+      - SECRET_KEY=${SECRET_KEY:-change-me-in-production}
+      - MAIL_SERVER=${MAIL_SERVER:-smtp.gmail.com}
+      - MAIL_PORT=${MAIL_PORT:-587}
+      - MAIL_USE_TLS=${MAIL_USE_TLS:-True}
+      - MAIL_USERNAME=${MAIL_USERNAME}
+      - MAIL_PASSWORD=${MAIL_PASSWORD}
+      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=postgresql://ayah_user:${DB_PASSWORD:-ayah_pass}@postgres:5432/ayah_db
+    volumes:
+      - ./data:/app/data:ro
+      - ayah_cache:/app/cache
+      - ayah_logs:/app/logs
+    depends_on:
+      - redis
+      - postgres
+      - ayah-app
+    networks:
+      - ayah-network
+
+  # Celery beat scheduler for periodic tasks
+  celery-beat:
+    build:
+      context: .
+      target: production
+    container_name: ayah-celery-beat
+    restart: unless-stopped
+    command: celery -A src.ayah_app.celery_app beat --loglevel=info
+    environment:
+      - FLASK_ENV=production
+      - SECRET_KEY=${SECRET_KEY:-change-me-in-production}
+      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=postgresql://ayah_user:${DB_PASSWORD:-ayah_pass}@postgres:5432/ayah_db
+    volumes:
+      - ayah_cache:/app/cache
+      - ayah_logs:/app/logs
+    depends_on:
+      - redis
+      - postgres
+      - ayah-app
+    networks:
+      - ayah-network
+
+volumes:
+  ayah_cache:
+    name: ayah_cache
+  ayah_logs:
+    name: ayah_logs
+  ayah_redis_data:
+    name: ayah_redis_data
+  ayah_postgres_data:
+    name: ayah_postgres_data
+
+networks:
+  ayah-network:
+    name: ayah-network
+    driver: bridge
+
+# Override for development
+---
+# docker-compose.override.yml for development
+# This file is automatically loaded by docker-compose
+version: '3.8'
+
+services:
+  ayah-app:
+    build:
+      target: builder
+    command: python -m flask run --host=0.0.0.0 --port=5000 --debug
+    environment:
+      - FLASK_ENV=development
+      - DEBUG=True
+    volumes:
+      - .:/app
+    ports:
+      - "5000:5000"
+
+  # Remove nginx and celery services in development
+  nginx:
+    profiles: ["production"]
+  
+  celery-worker:
+    profiles: ["production"]
+  
+  celery-beat:
+    profiles: ["production"]
