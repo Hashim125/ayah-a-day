@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en" data-theme="system">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ page_title }} · {{ app_name }}</title>
+  <meta name="description" content="{{ description|default('A quiet space to read a daily Quran verse, its translation, and Tafsir.', true) }}">
+  <meta name="theme-color" content="#173f35">
+  {% if noindex %}<meta name="robots" content="noindex,nofollow">{% endif %}
+  {% if canonical_url %}<link rel="canonical" href="{{ canonical_url }}">{% endif %}
+  <meta property="og:title" content="{{ page_title }} · {{ app_name }}">
+  <meta property="og:description" content="{{ description|default('Daily Quranic verses with translation and Tafsir.', true) }}">
+  {% if canonical_url %}<meta property="og:url" content="{{ canonical_url }}">{% endif %}
+  <meta property="og:type" content="website">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☾</text></svg>">
+  <link rel="stylesheet" href="{{ url_for('static', filename='app.css', v=asset_version) }}">
+  <script src="{{ url_for('static', filename='app.js', v=asset_version) }}" defer></script>
+</head>
+<body data-page="{{ page_kind|default('') }}">
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <header class="site-header">
+    <nav class="nav-shell" aria-label="Main navigation">
+      <a class="brand" href="{{ url_for('pages.home') }}" aria-label="Ayah App home">
+        <span class="brand-mark" aria-hidden="true">۞</span>
+        <span><strong>Ayah</strong><small>a quiet daily pause</small></span>
+      </a>
+      <div class="nav-links">
+        <a href="{{ url_for('pages.home') }}" {% if request.endpoint == 'pages.home' %}aria-current="page"{% endif %}>Today</a>
+        <a href="{{ url_for('pages.random_page') }}" {% if request.endpoint == 'pages.random_page' %}aria-current="page"{% endif %}>Random</a>
+        <a href="{{ url_for('pages.search_page') }}" {% if request.endpoint == 'pages.search_page' %}aria-current="page"{% endif %}>Explore</a>
+        <a href="{{ url_for('pages.bookmarks_page') }}" {% if request.endpoint == 'pages.bookmarks_page' %}aria-current="page"{% endif %}>Saved</a>
+      </div>
+      <button class="icon-button" type="button" data-theme-toggle aria-label="Change color theme" title="Change color theme">
+        <span aria-hidden="true">◐</span>
+      </button>
+    </nav>
+  </header>
+  <main id="main-content" class="page-shell">
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="site-footer">
+    <div><span class="ornament" aria-hidden="true">✦</span></div>
+    <p>Translation by Mufti Taqi Usmani · Commentary from Tafsir Ibn Kathir</p>
+    <p class="muted">{{ "{:,}".format(verse_count) }} verses available</p>
+  </footer>
+  <div class="toast" role="status" aria-live="polite" hidden></div>
+</body>
+</html>

@@ -1,81 +1,48 @@
-"""Configuration file for Ayah-a-Day application."""
+"""Environment-driven configuration for Ayah App."""
+
+from __future__ import annotations
 
 import os
+from pathlib import Path
 
-# Data Directory Configuration
-DATA_DIR = 'data'
-
-# Required Data Files
+BASE_DIR = Path(__file__).resolve().parent
+DATA_DIR = Path(os.getenv("AYAH_DATA_DIR", BASE_DIR / "data")).resolve()
+STATIC_FOLDER = BASE_DIR / "static"
+STATIC_ASSET_VERSION = "20260825d"
 REQUIRED_FILES = {
-    'quran': 'qpc-hafs.json',
-    'translation': 'en-taqi-usmani-simple.json',
-    'tafsir': 'en-tafisr-ibn-kathir.json'
+    "quran": "qpc-hafs.json",
+    "translation": "en-taqi-usmani-simple.json",
+    "tafsir": "en-tafisr-ibn-kathir.json",
 }
-
-# Search Configuration
 MAX_SEARCH_RESULTS = 20
+MAX_API_PAGE_SIZE = 50
 MIN_QUERY_LENGTH = 2
 MAX_QUERY_LENGTH = 200
 MAX_THEME_RESULTS = 25
-
-# Tafsir Resolution Configuration
-MAX_TAFSIR_REFERENCE_DEPTH = 3
-
-# Theme Categories for Verse Search
-VERSE_THEMES = {
-    "Prayer & Worship": ["prayer", "worship", "salah", "prostrate", "bow", "kneel", "remembrance", "dhikr", "praise"],
-    "Faith & Belief": ["believe", "faith", "trust", "iman", "believer", "faithful", "conviction", "certainty"],
-    "Patience & Perseverance": ["patience", "persevere", "endure", "steadfast", "sabr", "persist", "bear"],
-    "Forgiveness & Mercy": ["forgive", "mercy", "compassion", "pardon", "merciful", "forgiving", "rahma"],
-    "Guidance & Wisdom": ["guide", "guidance", "wisdom", "knowledge", "light", "path", "straight", "hidayah"],
-    "Paradise & Afterlife": ["paradise", "heaven", "afterlife", "resurrection", "judgment", "garden", "jannah"],
-    "Charity & Giving": ["charity", "giving", "spend", "poor", "needy", "zakat", "alms", "generous"],
-    "Justice & Righteousness": ["justice", "righteous", "fair", "equity", "just", "right", "good deed"],
-    "Fear & Hope": ["fear", "hope", "afraid", "terror", "anticipate", "expect", "reverence"],
-    "Family & Relationships": ["family", "parent", "child", "spouse", "marriage", "mother", "father"],
-    "Struggle & Hardship": ["trial", "test", "hardship", "difficulty", "struggle", "adversity", "challenge"],
-    "Gratitude & Thankfulness": ["grateful", "thank", "appreciation", "blessing", "favor", "thankful"]
-}
-
-# Application Metadata
+MAX_TAFSIR_REFERENCE_DEPTH = 25
 APP_NAME = "Ayah App"
-APP_DESCRIPTION = "Daily Quranic verses with translations and Tafsir commentary. Discover the beauty and wisdom of the Quran with verse of the day, random ayah generator, and powerful search."
-APP_KEYWORDS = ["Quran", "Ayah", "Tafsir", "Ibn Kathir", "Islamic", "Verse of the Day", "Translation", "Taqi Usmani"]
-
-# Social Media / SEO Configuration
-DEFAULT_OG_IMAGE = "https://ayahapp.com/static/og-image.png"
-DEFAULT_OG_URL = "https://ayahapp.com"
-
-# Flask Configuration
-DEBUG_MODE = True
-HOST = '0.0.0.0'
-PORT = 5000
-
-# Static Files Configuration
-STATIC_FOLDER = 'static'
-MOSQUE_IMAGE_FILENAME = 'PXL_20250601_024336215.jpg'
+APP_DESCRIPTION = "Daily Quranic verses with Taqi Usmani's translation and Ibn Kathir's commentary."
+APP_TIMEZONE = os.getenv("APP_TIMEZONE", "Europe/London")
+PUBLIC_BASE_URL = os.getenv("PUBLIC_BASE_URL", "").rstrip("/")
+DEBUG_MODE = os.getenv("DEBUG", "").lower() in {"1", "true", "yes", "on"}
+HOST = os.getenv("HOST", "127.0.0.1")
+PORT = int(os.getenv("PORT", "5000"))
 
 
-def get_data_file_path(file_key):
-    """Get the full path for a data file."""
-    filename = REQUIRED_FILES.get(file_key)
-    if not filename:
-        raise ValueError(f"Unknown data file key: {file_key}")
-    return os.path.join(DATA_DIR, filename)
+def get_data_file_path(file_key: str) -> Path:
+    """Return an absolute path for a configured dataset."""
+    try:
+        filename = REQUIRED_FILES[file_key]
+    except KeyError as exc:
+        raise ValueError(f"Unknown data file key: {file_key}") from exc
+    return DATA_DIR / filename
 
 
-def validate_data_directory():
-    """Check if data directory and all required files exist."""
-    if not os.path.exists(DATA_DIR):
+def validate_data_directory() -> tuple[bool, str]:
+    """Check that the data directory and required datasets exist."""
+    if not DATA_DIR.is_dir():
         return False, f"Data directory '{DATA_DIR}' not found"
-
-    missing_files = []
-    for key, filename in REQUIRED_FILES.items():
-        filepath = get_data_file_path(key)
-        if not os.path.exists(filepath):
-            missing_files.append(filename)
-
-    if missing_files:
-        return False, f"Missing required files: {', '.join(missing_files)}"
-
+    missing = [name for name in REQUIRED_FILES.values() if not (DATA_DIR / name).is_file()]
+    if missing:
+        return False, f"Missing required files: {', '.join(missing)}"
     return True, "All data files found"

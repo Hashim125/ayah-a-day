@@ -1,0 +1,17 @@
+{% macro verse_card(verse, compact=false, page_label='', display_date='') %}
+<article class="verse-card{% if compact %} verse-card--compact{% endif %}">
+  {% if page_label %}
+  <div class="reader-kicker">
+    <span>{{ page_label }}</span>
+    {% if display_date %}<time>{{ display_date }}</time>{% endif %}
+  </div>
+  {% endif %}
+  <header class="verse-meta">
+    <span>{{ verse.surah_name }}</span>
+    <a href="{{ url_for('pages.verse_page', verse_key=verse.verse_key) }}">{{ verse.verse_key }}</a>
+  </header>
+  <p class="arabic" dir="rtl" lang="ar">{{ verse.quran_text }}</p>
+  <div class="divider" aria-hidden="true"><span>۝</span></div>
+  <p class="translation">{{ verse.translation_text }}</p>
+</article>
+{% endmacro %}

@@ -1,148 +1,69 @@
-# 🌙 Ayah App - Simple Web Version
+# Ayah App
 
-A clean, simple web application that displays random Quran verses with translations and commentary, plus basic search functionality.
+Ayah App is a quiet, reading-first Flask application for exploring the Quran with Mufti Taqi Usmani's English translation and Tafsir Ibn Kathir. It includes a London-time verse of the day, ranked English and Arabic search, reviewed-theme infrastructure, local bookmarks, sharing, and surrounding verse context.
 
-## 🚀 Quick Start (2 minutes)
+## Run locally
 
-1. **Install Flask**
-   ```bash
-   pip install Flask
-   ```
+Python 3.12 is the production target.
 
-2. **Run the app**
-   ```bash
-   python simple_app.py
-   ```
-
-3. **Open your browser**
-   Go to: http://localhost:5000
-
-That's it! 🎉
-
-## ✨ Features
-
-- **Random verses** - Beautiful display of Quran verses with Arabic text, translation, and Tafsir
-- **Search functionality** - Find verses containing specific words or phrases
-- **Responsive design** - Works great on desktop and mobile
-- **No database needed** - Uses your existing JSON files
-- **API endpoints** - Simple JSON API for integration
-
-## 📁 File Structure
-
-```
-ayah-a-day/
-├── simple_app.py          # Main application (everything in one file!)
-├── requirements.txt       # Just Flask
-├── data/                  # Your Quran data files
-│   ├── qpc-hafs.json
-│   ├── en-taqi-usmani-simple.json
-│   └── en-tafisr-ibn-kathir.json
-└── archive/               # Previous versions stored here
-```
-
-## 🔍 How It Works
-
-The app loads all 6,236 verses into memory at startup for fast access:
-- **Home page** (`/`) - Shows a random verse
-- **Search page** (`/search?q=query`) - Find verses containing your search terms
-- **API endpoints** - `/api/random` and `/api/search` for programmatic access
-
-## 🌐 Making It Live
-
-### Option 1: PythonAnywhere (Free & Easy)
-1. Sign up at [pythonanywhere.com](https://www.pythonanywhere.com)
-2. Upload your files
-3. Create a Flask app
-4. Get a URL like `yourusername.pythonanywhere.com`
-
-### Option 2: Any Web Hosting
-- Upload files to any server that supports Python
-- Run `python simple_app.py` 
-- Your app will be available to anyone!
-
-### Option 3: Heroku
 ```bash
-# Create a Procfile with: web: python simple_app.py
-echo "web: python simple_app.py" > Procfile
-git add . && git commit -m "Simple app"
-heroku create your-app-name
-git push heroku main
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements-dev.txt
+python simple_app.py
 ```
 
-## 🎨 Customization
+Open `http://127.0.0.1:5000`. The application fails at startup if the required data is absent or invalid.
 
-Want to modify the look or add features? Everything is in `simple_app.py`:
+## Test
 
-- **Lines 15-65**: Data loading (your original logic)
-- **Lines 90-200**: HTML template (easy to modify styling)
-- **Lines 200-230**: Web routes (add new pages here)
-
-## 📱 API Usage
-
-Get random verse:
-```javascript
-fetch('/api/random')
-  .then(response => response.json())
-  .then(verse => console.log(verse.translation_text));
+```bash
+pytest -q
 ```
 
-Search verses:
-```javascript
-fetch('/api/search?q=prayer')
-  .then(response => response.json())
-  .then(results => console.log(`Found ${results.length} verses`));
-```
+The suite validates all 6,236 verses, exact Arabic source preservation, Tafsir references and sanitization, search behavior, API compatibility, security headers, and page response sizes.
 
-## 🔧 Technical Details
+## Configuration
 
-- **Flask** web framework (lightweight and simple)
-- **In-memory data** for fast verse lookup
-- **No database required** - uses your existing JSON files
-- **Responsive design** with Tailwind CSS
-- **Arabic font support** with Amiri font
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `AYAH_DATA_DIR` | `./data` | Absolute or relative dataset directory |
+| `APP_TIMEZONE` | `Europe/London` | Calendar used for the daily verse |
+| `PUBLIC_BASE_URL` | Request origin | Canonical URL used in public links and metadata |
+| `DEBUG` | `false` | Enable Flask development debugging |
+| `HOST` | `127.0.0.1` | Local development bind address |
+| `PORT` | `5000` locally | HTTP port |
+| `WEB_CONCURRENCY` | `2` | Gunicorn workers |
+| `GUNICORN_THREADS` | `4` | Threads per Gunicorn worker |
 
-## 📝 What Changed from Original
+## Routes and API
 
-✅ **Kept everything you loved:**
-- Same random verse generation logic
-- Same HTML cleaning for Tafsir
-- Same beautiful Arabic text display
-- Uses your existing JSON files
+- `/` — verse of the day
+- `/random` — random verse
+- `/search?q=mercy` — ranked English, Arabic, or reference search
+- `/verse/2:255` — permanent verse page with Tafsir and context
+- `/bookmarks` — browser-local saved verses
+- `/curation-review` — no-index review page for draft daily and theme collections
+- `/healthz` — readiness status
 
-➕ **Added useful features:**
-- Web interface accessible from anywhere
-- Search functionality
-- Mobile-friendly responsive design
-- API for potential integrations
+Existing JSON routes remain compatible: `/api/random`, `/api/verse-of-the-day`, `/api/search`, `/api/theme/<theme>`, and `/api/verse/<verse_key>`.
 
-❌ **Removed complexity:**
-- No database setup required
-- No complex configuration files
-- No user accounts or authentication
-- No email systems (can add later if needed)
+Search and theme APIs accept `limit` (1–50), `offset`, and `include_tafsir=0|1`. Pagination metadata is returned in `X-Total-Count`, `X-Limit`, `X-Offset`, and `Link` headers. Tafsir remains included by default for compatibility; new clients should request `include_tafsir=0` for compact results.
 
-## 🤝 What's Archived
+## Curation
 
-I moved the complex version to `archive/complex_version/` in case you want the enterprise features later:
-- Full database integration
-- Email subscription system
-- Docker deployment
-- Comprehensive test suite
-- Advanced caching and logging
+[`ayah_app/curation.json`](ayah_app/curation.json) contains candidate daily and theme verse lists with `"status": "draft"`. While draft, the daily verse is selected deterministically from all verses and themes use ranked text search. Change the status only after the verse keys and translations receive human review.
 
-Your original script is in `archive/original/` for reference.
+## Render deployment
 
-## 🛠 Potential Enhancements
+The included [`render.yaml`](render.yaml) installs the pinned dependencies, starts `gunicorn -c gunicorn.conf.py simple_app:app`, and checks `/healthz`. Set `PUBLIC_BASE_URL` to the final Render or custom-domain origin. No database or persistent disk is required.
 
-Simple additions we could make:
-- **Bookmark favorites** (using browser localStorage)
-- **Daily verse permalink** (same verse for everyone each day)
-- **Share buttons** (WhatsApp, Twitter, etc.)
-- **Simple email signup** (store emails in text file)
-- **Verse of the day widget** (embeddable HTML)
-- **Print-friendly view**
-- **Dark mode toggle**
+## Data and typography
 
----
+The repository expects:
 
-*May this simple app bring guidance and peace to all who use it. Barakallahu feek!* 🤲
+- `data/qpc-hafs.json`
+- `data/en-taqi-usmani-simple.json`
+- `data/en-tafisr-ibn-kathir.json`
+
+Treat Quran and translation content as immutable source material. Derived search normalization must never replace displayed text. Amiri is bundled under the SIL Open Font License in `static/fonts/OFL.txt`.

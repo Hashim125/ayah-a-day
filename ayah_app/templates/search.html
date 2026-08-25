@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="page-intro">
+  <p class="eyebrow">Explore the Quran</p>
+  <h1>Search and reflect</h1>
+  <p>Search an English phrase, Arabic words, or a reference such as <span class="reference">2:255</span>.</p>
+</section>
+<form class="search-form" action="{{ url_for('pages.search_page') }}" method="get" role="search">
+  <label for="q">Search verses</label>
+  <div class="search-row">
+    <input id="q" name="q" value="{{ query }}" maxlength="200" placeholder="mercy, guidance, الصبر, 2:255">
+    <button class="button button--primary" type="submit">Search</button>
+  </div>
+</form>
+<section class="themes" aria-labelledby="themes-title">
+  <div class="section-heading"><p class="eyebrow">Browse slowly</p><h2 id="themes-title">Themes</h2></div>
+  <div class="theme-grid">
+    {% for theme in themes %}<a href="{{ url_for('pages.search_page', theme=theme) }}" {% if selected_theme == theme %}aria-current="true"{% endif %}>{{ theme }}</a>{% endfor %}
+  </div>
+  {% if not curation_approved %}<p class="muted curation-note">Theme collections currently use ranked text matches while their reviewed verse lists await approval. <a href="{{ url_for('pages.curation_review') }}">Review candidates</a>.</p>{% endif %}
+</section>
+
+{% if query or selected_theme %}
+<section class="results" aria-live="polite">
+  <div class="results-heading">
+    <h2>{% if selected_theme %}{{ selected_theme }}{% else %}Results for “{{ query }}”{% endif %}</h2>
+    <span>{{ total }} found</span>
+  </div>
+  {% if results %}
+    <div class="result-list">
+    {% for result in results %}
+      <article class="result-card">
+        <button class="result-summary" type="button" aria-expanded="false" aria-controls="result-{{ loop.index }}">
+          <span><strong>{{ result.verse.surah_name }} · {{ result.verse.verse_key }}</strong><small>{{ result.verse.translation_text|truncate(155) }}</small></span>
+          <span aria-hidden="true">⌄</span>
+        </button>
+        <div class="result-detail" id="result-{{ loop.index }}" hidden>
+          <p class="arabic arabic--result" dir="rtl" lang="ar">{{ result.verse.quran_text }}</p>
+          <p class="translation">{{ result.verse.translation_text }}</p>
+          {% if result.snippet and result.snippet != result.verse.translation_text %}<p class="snippet">{{ result.snippet }}</p>{% endif %}
+          <div class="result-actions">
+            <button class="text-button" type="button" data-bookmark="{{ result.verse.verse_key }}">☆ Save</button>
+            <a class="text-button" href="{{ url_for('pages.verse_page', verse_key=result.verse.verse_key) }}">Read with Tafsir →</a>
+          </div>
+        </div>
+      </article>
+    {% endfor %}
+    </div>
+    {% if total_pages > 1 %}
+    <nav class="page-pagination" aria-label="Search result pages">
+      {% if page > 1 %}<a href="{{ url_for('pages.search_page', q=query or none, theme=selected_theme or none, page=page-1) }}">← Previous</a>{% endif %}
+      <span>Page {{ page }} of {{ total_pages }}</span>
+      {% if page < total_pages %}<a href="{{ url_for('pages.search_page', q=query or none, theme=selected_theme or none, page=page+1) }}">Next →</a>{% endif %}
+    </nav>
+    {% endif %}
+  {% else %}
+    <div class="empty-state"><span aria-hidden="true">◇</span><h3>No matching verses</h3><p>Try a shorter phrase, another spelling, or a verse reference.</p></div>
+  {% endif %}
+</section>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="page-intro">
+  <p class="eyebrow">Human review checkpoint</p>
+  <h1>Curation candidates</h1>
+  <p>Review every reference and translation before changing the curation status from <span class="reference">{{ status }}</span> to <span class="reference">approved</span>. Draft collections are not used for live selection.</p>
+</section>
+<section class="curation-review">
+  <div class="section-heading"><p class="eyebrow">30 candidates</p><h2>Daily rotation</h2></div>
+  <div class="review-list">
+    {% for verse in daily %}<article><a href="{{ url_for('pages.verse_page', verse_key=verse.verse_key) }}">{{ verse.verse_key }}</a><div><strong>{{ verse.surah_name }}</strong><p>{{ verse.translation_text }}</p></div></article>{% endfor %}
+  </div>
+</section>
+{% for theme, verses in curated_themes.items() %}
+<section class="curation-review">
+  <div class="section-heading"><p class="eyebrow">Theme collection</p><h2>{{ theme }}</h2></div>
+  <div class="review-list">
+    {% for verse in verses %}<article><a href="{{ url_for('pages.verse_page', verse_key=verse.verse_key) }}">{{ verse.verse_key }}</a><div><strong>{{ verse.surah_name }}</strong><p>{{ verse.translation_text }}</p></div></article>{% endfor %}
+  </div>
+</section>
+{% endfor %}
+{% endblock %}

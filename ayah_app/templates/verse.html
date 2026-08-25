@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% from "_verse_card.html" import verse_card %}
+{% block content %}
+{% if page_kind == "daily" %}
+  {% set reader_label = "Verse of the Day" %}
+{% elif page_kind == "random" %}
+  {% set reader_label = "Random Ayah" %}
+{% else %}
+  {% set reader_label = "Ayah " ~ verse.ayah %}
+{% endif %}
+{{ verse_card(verse, page_label=reader_label, display_date=display_date|default('')) }}
+
+<div class="reader-tools" aria-label="Verse tools">
+  {% if page_kind == "random" %}<a class="button button--primary" href="{{ url_for('pages.random_page') }}">Another ayah</a>{% endif %}
+  <button class="button button--quiet" type="button" data-bookmark="{{ verse.verse_key }}"><span aria-hidden="true">☆</span> Save</button>
+  <button class="button button--quiet" type="button" data-share="{{ verse.verse_key }}">Share</button>
+  <button class="button button--quiet" type="button" data-copy="{{ verse.verse_key }}">Copy link</button>
+  <div class="share-menu-wrap">
+    <button class="button button--quiet share-more" type="button" aria-expanded="false" aria-controls="share-options">More <span aria-hidden="true">⌄</span></button>
+    <div class="share-menu" id="share-options" hidden>
+      <button type="button" data-share-whatsapp="{{ verse.verse_key }}">Share on WhatsApp</button>
+      <button type="button" data-share-x="{{ verse.verse_key }}">Share on X</button>
+      <button type="button" data-image-card="{{ verse.verse_key }}">Download image</button>
+    </div>
+  </div>
+</div>
+
+{% if page_kind == "daily" and not curated %}
+<p class="curation-note">The reviewed daily collection is still in draft; today’s selection uses the complete Quran dataset. <a href="{{ url_for('pages.curation_review') }}">Review candidates</a>.</p>
+{% endif %}
+
+{% if verse.tafsir_html %}
+<section class="reading-section">
+  <div class="section-heading"><p class="eyebrow">Commentary</p><h2>Tafsir Ibn Kathir</h2></div>
+  <div class="tafsir-preview" data-tafsir-preview>
+    <div class="tafsir prose" id="full-tafsir">{{ verse.tafsir_html|safe }}</div>
+  </div>
+  <div class="disclosure-row">
+    <button class="text-button disclosure-button" type="button" data-tafsir-toggle aria-expanded="false" aria-controls="full-tafsir">Read full Tafsir <span aria-hidden="true">↓</span></button>
+  </div>
+</section>
+{% endif %}
+
+{% if context_before or context_after %}
+<section class="reading-section context-section">
+  <div class="section-heading"><p class="eyebrow">Read around this ayah</p><h2>Surrounding context</h2></div>
+  <div class="context-strip">
+    {% if previous_key %}<a href="{{ url_for('pages.verse_page', verse_key=previous_key) }}"><span>Previous</span>{{ previous_key }}</a>{% else %}<span></span>{% endif %}
+    <strong><span>Current</span>{{ verse.verse_key }}</strong>
+    {% if next_key %}<a href="{{ url_for('pages.verse_page', verse_key=next_key) }}"><span>Next</span>{{ next_key }}</a>{% else %}<span></span>{% endif %}
+  </div>
+  <div class="disclosure-row"><button class="text-button disclosure-button" type="button" data-context-toggle aria-expanded="false" aria-controls="nearby-verses">Show nearby ayahs <span aria-hidden="true">↓</span></button></div>
+  <div class="context-list" id="nearby-verses" hidden>
+    {% for item in context_before %}{{ verse_card(item, compact=true) }}{% endfor %}
+    {% for item in context_after %}{{ verse_card(item, compact=true) }}{% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<nav class="verse-pagination" aria-label="Adjacent verses">
+  {% if previous_key %}<a href="{{ url_for('pages.verse_page', verse_key=previous_key) }}">← Previous ayah</a>{% else %}<span></span>{% endif %}
+  {% if next_key %}<a href="{{ url_for('pages.verse_page', verse_key=next_key) }}">Next ayah →</a>{% endif %}
+</nav>
+{% endblock %}

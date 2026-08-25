@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="page-intro">
+  <p class="eyebrow">Your private collection</p><h1>Saved verses</h1>
+  <p>Bookmarks stay in this browser. Export a copy whenever you wish.</p>
+</section>
+<div class="bookmark-toolbar">
+  <button class="button button--quiet" type="button" data-export-bookmarks>Export JSON</button>
+  <label class="button button--quiet file-button">Import JSON<input type="file" accept="application/json,.json" data-import-bookmarks></label>
+  <label class="button button--quiet file-button">Replace from JSON<input type="file" accept="application/json,.json" data-replace-bookmarks></label>
+  <button class="text-button danger" type="button" data-clear-bookmarks>Clear all</button>
+</div>
+<div id="bookmarks-container" class="bookmark-list" aria-live="polite">
+  <div class="empty-state"><p>Loading saved verses…</p></div>
+</div>
+<template id="bookmark-template">
+  <article class="saved-card">
+    <header><strong data-surah></strong><a data-link></a></header>
+    <p class="arabic arabic--saved" dir="rtl" lang="ar" data-arabic></p>
+    <p class="translation" data-translation></p>
+    <div><button class="text-button" type="button" data-remove>Remove</button></div>
+  </article>
+</template>
+{% endblock %}
