@@ -83,3 +83,10 @@ def test_pages_have_no_inline_styles_or_scripts(client):
         html = client.get(path).data
         assert b'style="' not in html, path
         assert not re.search(rb"<script(?![^>]*\bsrc=)", html), path
+
+
+def test_search_results_come_before_themes(client):
+    # Results must be visible without scrolling past the twelve theme tiles.
+    for path in ("/search?q=patience", "/search?theme=Faith+%26+Belief"):
+        html = client.get(path).data
+        assert html.index(b'id="results-title"') < html.index(b'id="themes-title"'), path

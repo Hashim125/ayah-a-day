@@ -15,16 +15,6 @@
 {% endblock %}
 
 {% block content %}
-<section class="reading-section themes" aria-labelledby="themes-title">
-  <div class="section-heading"><h2 id="themes-title">Themes</h2><p>Browse verses by subject</p></div>
-  <div class="section-body">
-    <div class="theme-grid">
-      {% for theme in themes %}<a href="{{ url_for('pages.search_page', theme=theme) }}" {% if selected_theme == theme %}aria-current="true"{% endif %}>{{ theme }}</a>{% endfor %}
-    </div>
-    {% if not curation_approved %}<p class="curation-note">Theme collections currently use ranked text matches while their reviewed verse lists await approval. <a href="{{ url_for('pages.curation_review') }}">Review candidates</a>.</p>{% endif %}
-  </div>
-</section>
-
 {% if query or selected_theme %}
 <section class="reading-section results" aria-live="polite" aria-labelledby="results-title">
   <div class="section-heading"><h2 id="results-title">{% if selected_theme %}{{ selected_theme }}{% else %}Results for “{{ query }}”{% endif %}</h2><p>{{ total }} found</p></div>
@@ -62,4 +52,14 @@
   </div>
 </section>
 {% endif %}
+
+<section class="reading-section themes" aria-labelledby="themes-title">
+  <div class="section-heading"><h2 id="themes-title">Themes</h2><p>Browse verses by subject</p></div>
+  <div class="section-body">
+    <div class="theme-grid">
+      {% for theme in themes %}<a href="{{ url_for('pages.search_page', theme=theme) }}" {% if selected_theme == theme %}aria-current="true"{% endif %}>{{ theme }}</a>{% endfor %}
+    </div>
+    {% if not curation_approved %}<p class="curation-note">Theme collections currently use ranked text matches while their reviewed verse lists await approval. <a href="{{ url_for('pages.curation_review') }}">Review candidates</a>.</p>{% endif %}
+  </div>
+</section>
 {% endblock %}
