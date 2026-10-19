@@ -8,7 +8,7 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = Path(os.getenv("AYAH_DATA_DIR", BASE_DIR / "data")).resolve()
 STATIC_FOLDER = BASE_DIR / "static"
-STATIC_ASSET_VERSION = "20260825d"
+STATIC_ASSET_VERSION = "20261019b"
 REQUIRED_FILES = {
     "quran": "qpc-hafs.json",
     "translation": "en-taqi-usmani-simple.json",

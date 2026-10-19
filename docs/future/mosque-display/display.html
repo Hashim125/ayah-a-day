@@ -1,0 +1,32 @@
+{% from "_verse_card.html" import verse_key_block, verse_text %}
+{% from "_icons.html" import arch %}
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>{{ mosque_name or app_name }} · Ayah of the day</title>
+  <meta name="theme-color" content="#0d5c61">
+  <link rel="icon" href="{{ url_for('static', filename='favicon.svg', v=asset_version) }}" type="image/svg+xml">
+  <link rel="stylesheet" href="{{ url_for('static', filename='app.css', v=asset_version) }}">
+  <script src="{{ url_for('static', filename='display.js', v=asset_version) }}" defer></script>
+</head>
+<body class="display-page" data-reload-seconds="{{ reload_seconds }}" data-health-url="{{ url_for('pages.health') }}" data-timezone="{{ timezone }}" data-hijri-offset="{{ hijri_offset }}">
+  <main class="display">
+    <header class="display-head">
+      <strong>{{ arch() }}{{ mosque_name or "Ayah" }}</strong>
+      <p>{{ display_date }}<span data-hijri-date></span></p>
+    </header>
+    <section class="display-main" aria-label="Ayah of the day">
+      <div class="display-key">{{ verse_key_block(verse, page_label="Ayah of the day") }}</div>
+      <div class="display-read" data-fit>{{ verse_text(verse) }}</div>
+    </section>
+    <footer class="display-foot">
+      <p>{% if mosque_notice %}<b>Notice</b> {{ mosque_notice }}{% else %}<b>Tafsir Ibn Kathir</b> Read the commentary and the verses around this ayah on your phone.{% endif %}</p>
+      <span class="display-scan">Scan to read the full Tafsir</span>
+      <img class="display-qr" src="{{ url_for('pages.display_qr', key=verse.verse_key) }}" alt="QR code linking to {{ verse.surah_name }} {{ verse.verse_key }}" width="120" height="120">
+    </footer>
+  </main>
+</body>
+</html>

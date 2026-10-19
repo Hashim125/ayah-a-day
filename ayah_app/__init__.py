@@ -4,12 +4,16 @@ from flask import Flask, request
 
 import config
 from .data import QuranRepository
+from .search import SearchService
 
 
 def create_app(*, repository: QuranRepository | None = None, testing: bool = False) -> Flask:
     app = Flask(__name__, static_folder=str(config.STATIC_FOLDER), template_folder="templates")
     app.config.update(TESTING=testing, DEBUG=config.DEBUG_MODE if not testing else False)
     app.extensions["quran_repository"] = repository or QuranRepository.load()
+    # Build the search index at startup (shared by gunicorn's preloaded workers) so the
+    # first visitor to search doesn't wait for it.
+    app.extensions["search_service"] = SearchService(app.extensions["quran_repository"])
 
     from .routes import pages
     app.register_blueprint(pages)

@@ -1,0 +1,25 @@
+/* Removed from static/app.css. Paste back above the "Responsive" section; it uses the app tokens. */
+/* Mosque display (/display): sized from the screen, one em ≈ 24px on a 1080p TV */
+.display-page{margin:0;height:100vh;overflow:hidden;background:var(--band);color:var(--band-ink);font-size:1.25vw;font-size:min(1.25vw,2.22vh)}
+.display{height:100vh;display:grid;grid-template-rows:auto minmax(0,1fr) auto}
+.display-head{display:flex;justify-content:space-between;align-items:center;gap:2em;padding:1.1em 2.4em}
+.display-head strong{display:inline-flex;align-items:center;gap:.5em;font-family:var(--font-display);font-weight:400;font-size:1.6em}
+.display-head strong svg{width:.8em;height:1em;fill:var(--rose)}
+.display-head p{margin:0;color:var(--band-muted);font-size:1.1em}
+.display-main{display:grid;grid-template-columns:24% minmax(0,1fr);gap:2.4em;align-items:center;padding:.5em 2.4em 1.5em;min-height:0}
+.display-key{display:grid;gap:.6em;justify-items:start}
+.display-key .verse-numeral{font-size:8em}
+.display-key .verse-numeral--5{font-size:6.4em}
+.display-key .verse-numeral--6,.display-key .verse-numeral--7{font-size:5.2em}
+.display-key .verse-surah{font-size:1.15em}
+.display-key .reader-kicker{font-size:1em}
+.display-read{display:grid;gap:1em;justify-items:center;text-align:center;min-height:0;max-height:100%;overflow:hidden}
+.display-read .arabic--hero{font-size:4.6em;padding:1.1em .8em .2em}
+.display-read .arabic--hero:before{border-radius:50% 50% 0 0 / 2.2em 2.2em 0 0}
+.display-read .translation{font-size:1.75em;font-weight:300;line-height:1.4}
+.display-read .translation--long{font-size:1.25em;max-width:none;text-align:center}
+.display-foot{display:flex;align-items:center;gap:1.6em;padding:1em 2.4em;background:var(--ground);color:var(--ink);font-size:1.1em}
+.display-foot p{margin:0;flex:1;min-width:0}
+.display-foot b{color:var(--accent);font-weight:600}
+.display-scan{font-size:.85em;color:var(--muted);max-width:9em;line-height:1.25;text-align:right}
+.display-qr{width:5em;height:5em;background:#fff;padding:.25em;flex:none}

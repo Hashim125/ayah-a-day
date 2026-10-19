@@ -22,7 +22,6 @@
     document.querySelectorAll("[data-bookmark]").forEach(button => {
       const active = saved.has(button.dataset.bookmark);
       button.setAttribute("aria-pressed", String(active));
-      const icon = button.querySelector("span"); if (icon) icon.textContent = active ? "★" : "☆";
     });
   }
   function toggleBookmark(key) {
@@ -64,9 +63,23 @@
     await document.fonts.ready; const image=new Image(); image.src="/static/mosque-share.jpg"; await image.decode();
     const canvas=document.createElement("canvas"); canvas.width=1080; canvas.height=1350; const ctx=canvas.getContext("2d");
     const scale=Math.max(canvas.width/image.width,canvas.height/image.height); const width=image.width*scale,height=image.height*scale; ctx.drawImage(image,(canvas.width-width)/2,(canvas.height-height)/2,width,height);
-    ctx.fillStyle="rgba(11,31,26,.72)";ctx.fillRect(0,0,canvas.width,canvas.height);ctx.fillStyle="rgba(255,253,248,.94)";ctx.fillRect(75,110,930,1130);ctx.textAlign="center";ctx.fillStyle="#173f35";ctx.font="700 28px Georgia";ctx.fillText(`${verse.surah_name} · ${key}`,540,180);
-    ctx.direction="rtl";ctx.font="400 52px Amiri";const arabic=wrappedLines(ctx,verse.clean_ayah_text,790);arabic.slice(0,7).forEach((line,i)=>ctx.fillText(line,540,300+i*78));
-    const dividerY=350+Math.min(arabic.length,7)*78;ctx.direction="ltr";ctx.strokeStyle="#aa7d35";ctx.beginPath();ctx.moveTo(440,dividerY);ctx.lineTo(640,dividerY);ctx.stroke();ctx.font="34px Georgia";ctx.fillStyle="#26352f";const translation=wrappedLines(ctx,`“${verse.translation_text}”`,790);translation.slice(0,8).forEach((line,i)=>ctx.fillText(line,540,dividerY+80+i*52));ctx.font="22px Georgia";ctx.fillStyle="#aa7d35";ctx.fillText("AYAH · A QUIET DAILY PAUSE",540,1170);
+    ctx.fillStyle="rgba(13,92,97,.9)";ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.textAlign="center";ctx.fillStyle="#f6e3da";ctx.font="400 112px Gloock";ctx.fillText(key,540,230);
+    ctx.font="600 26px 'Readex Pro'";ctx.fillStyle="#f2a99d";ctx.fillText(verse.surah_name.toUpperCase(),540,290);
+    ctx.strokeStyle="#3f7d80";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(110,1180);ctx.lineTo(110,430);ctx.ellipse(540,430,430,90,0,Math.PI,0);ctx.lineTo(970,1180);ctx.stroke();
+    // Shrink both texts until the whole verse fits inside the arch; never truncate the Quran text.
+    let arabicSize=54,translationSize=32,arabic=[],translation=[],textHeight=0;
+    for(;;){
+      ctx.direction="rtl";ctx.font=`400 ${arabicSize}px 'Amiri Quran'`;arabic=wrappedLines(ctx,verse.clean_ayah_text,760);
+      ctx.direction="ltr";ctx.font=`300 ${translationSize}px 'Readex Pro'`;translation=wrappedLines(ctx,verse.translation_text,740);
+      textHeight=arabic.length*arabicSize*1.55+40+translation.length*translationSize*1.4;
+      if(textHeight<=700||arabicSize<=16)break;
+      arabicSize-=2;translationSize=Math.max(14,translationSize-1);
+    }
+    let y=470+Math.max(0,(700-textHeight)/2);ctx.fillStyle="#f6e3da";
+    ctx.direction="rtl";ctx.font=`400 ${arabicSize}px 'Amiri Quran'`;arabic.forEach(line=>{ctx.fillText(line,540,y);y+=arabicSize*1.55;});
+    y+=40;ctx.direction="ltr";ctx.font=`300 ${translationSize}px 'Readex Pro'`;translation.forEach(line=>{ctx.fillText(line,540,y);y+=translationSize*1.4;});
+    ctx.font="400 34px Gloock";ctx.fillStyle="#f2a99d";ctx.fillText("Ayah",540,1240);
     canvas.toBlob(blob=>{const url=URL.createObjectURL(blob);const link=document.createElement("a");link.href=url;link.download=`quran-${key.replace(":","-")}.png`;link.click();URL.revokeObjectURL(url);toast("Verse image downloaded");},"image/png");
   }
   function setupTheme() {
@@ -82,6 +95,49 @@
     const sizes = {small:"clamp(1.85rem,4.8vw,3.25rem)",medium:"clamp(2.15rem,5.6vw,4rem)",large:"clamp(2.6rem,6.5vw,4.7rem)"};
     const saved = localStorage.getItem(FONT_KEY) || "medium"; select.value = saved; document.documentElement.style.setProperty("--arabic-size", sizes[saved]);
     select.addEventListener("change", () => { localStorage.setItem(FONT_KEY, select.value); document.documentElement.style.setProperty("--arabic-size", sizes[select.value]); });
+  }
+  const SEARCH_PENDING_KEY = "ayah-search-pending";
+  function setupSearchLoading() {
+    const form = document.querySelector("[data-search-form]"); if (!form) return;
+    const status = document.querySelector("[data-search-status]");
+    const start = (message, control) => {
+      document.body.classList.add("page-loading");
+      if (control) control.classList.add("is-loading");
+      if (status) status.textContent = message;
+      try { sessionStorage.setItem(SEARCH_PENDING_KEY, "1"); } catch (_) { /* storage blocked: skip the scroll */ }
+    };
+    form.addEventListener("submit", event => {
+      const query = form.querySelector("input[name=q]").value.trim();
+      if (!query) { event.preventDefault(); form.querySelector("input[name=q]").focus(); return; }
+      const button = form.querySelector("[data-search-submit]");
+      if (button) { button.firstChild.nodeValue = "Searching"; button.setAttribute("aria-disabled", "true"); }
+      start(`Searching for ${query}`, button);
+    });
+    document.querySelectorAll(".theme-chips a").forEach(link => link.addEventListener("click", event => {
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
+      start(link.classList.contains("theme-clear") ? "Clearing theme" : `Loading ${link.textContent}`, link);
+    }));
+    // Returning with the Back button restores the old page from cache; clear the loading look.
+    window.addEventListener("pageshow", event => {
+      if (!event.persisted) return;
+      document.body.classList.remove("page-loading");
+      document.querySelectorAll(".is-loading").forEach(node => node.classList.remove("is-loading"));
+      const button = form.querySelector("[data-search-submit]");
+      if (button) { button.firstChild.nodeValue = "Search"; button.removeAttribute("aria-disabled"); }
+    });
+    // After a search or theme loads, make sure the results are on screen and announced.
+    let pending = false;
+    try { pending = sessionStorage.getItem(SEARCH_PENDING_KEY) === "1"; sessionStorage.removeItem(SEARCH_PENDING_KEY); } catch (_) { /* ignore */ }
+    const heading = document.getElementById("results-title");
+    if (pending && heading) {
+      if (heading.getBoundingClientRect().top > window.innerHeight * 0.75) heading.scrollIntoView({behavior: "smooth", block: "start"});
+      heading.focus({preventScroll: true});
+    }
+  }
+  function setupThemeChips() {
+    // On phones the chips scroll sideways; bring the selected theme into view.
+    const current = document.querySelector('.theme-chips a[aria-current="true"]');
+    if (current) current.scrollIntoView({block: "nearest", inline: "center"});
   }
   function setupAccordions() {
     document.querySelectorAll(".result-summary").forEach(button => button.addEventListener("click", () => {
@@ -127,7 +183,7 @@
     try { const data=JSON.parse(await file.text()); if(data.version!==1||!Array.isArray(data.verse_keys)) throw new Error(); const valid=data.verse_keys.filter(v=>/^\d{1,3}:\d{1,3}$/.test(v)); if(replace&&!confirm("Replace all current bookmarks with this file?"))return; writeBookmarks(replace?valid:[...readBookmarks(),...valid]); toast(`${valid.length} bookmarks imported`); renderBookmarks(); } catch(_){ toast("That bookmark file is not valid"); }
   }
   document.addEventListener("DOMContentLoaded", () => {
-    setupTheme(); setupFontSize(); setupAccordions(); setupDisclosures(); setupShareMenu(); updateBookmarkButtons(); renderBookmarks();
+    setupTheme(); setupFontSize(); setupThemeChips(); setupSearchLoading(); setupAccordions(); setupDisclosures(); setupShareMenu(); updateBookmarkButtons(); renderBookmarks();
     document.addEventListener("click", event => { const bookmark=event.target.closest("[data-bookmark]"); if(bookmark) toggleBookmark(bookmark.dataset.bookmark); const copy=event.target.closest("[data-copy]"); if(copy) copyLink(copy.dataset.copy); const share=event.target.closest("[data-share]"); if(share) shareVerse(share.dataset.share); const wa=event.target.closest("[data-share-whatsapp]");if(wa)shareProvider(wa.dataset.shareWhatsapp,"whatsapp");const x=event.target.closest("[data-share-x]");if(x)shareProvider(x.dataset.shareX,"x");const card=event.target.closest("[data-image-card]");if(card)downloadImageCard(card.dataset.imageCard); });
     document.querySelector("[data-export-bookmarks]")?.addEventListener("click",exportBookmarks);
     document.querySelector("[data-import-bookmarks]")?.addEventListener("change",event=>{if(event.target.files[0]) importBookmarks(event.target.files[0]);});

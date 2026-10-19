@@ -1,20 +1,23 @@
 {% extends "base.html" %}
-{% block content %}
+{% block hero %}
 <section class="page-intro">
-  <p class="eyebrow">Human review checkpoint</p>
+  <p class="kicker">Human review checkpoint</p>
   <h1>Curation candidates</h1>
   <p>Review every reference and translation before changing the curation status from <span class="reference">{{ status }}</span> to <span class="reference">approved</span>. Draft collections are not used for live selection.</p>
 </section>
-<section class="curation-review">
-  <div class="section-heading"><p class="eyebrow">30 candidates</p><h2>Daily rotation</h2></div>
-  <div class="review-list">
+{% endblock %}
+
+{% block content %}
+<section class="reading-section curation-review" aria-labelledby="daily-title">
+  <div class="section-heading"><h2 id="daily-title">Daily rotation</h2><p>{{ daily|length }} candidates</p></div>
+  <div class="section-body review-list">
     {% for verse in daily %}<article><a href="{{ url_for('pages.verse_page', verse_key=verse.verse_key) }}">{{ verse.verse_key }}</a><div><strong>{{ verse.surah_name }}</strong><p>{{ verse.translation_text }}</p></div></article>{% endfor %}
   </div>
 </section>
 {% for theme, verses in curated_themes.items() %}
-<section class="curation-review">
-  <div class="section-heading"><p class="eyebrow">Theme collection</p><h2>{{ theme }}</h2></div>
-  <div class="review-list">
+<section class="reading-section curation-review">
+  <div class="section-heading"><h2>{{ theme }}</h2><p>Theme collection</p></div>
+  <div class="section-body review-list">
     {% for verse in verses %}<article><a href="{{ url_for('pages.verse_page', verse_key=verse.verse_key) }}">{{ verse.verse_key }}</a><div><strong>{{ verse.surah_name }}</strong><p>{{ verse.translation_text }}</p></div></article>{% endfor %}
   </div>
 </section>

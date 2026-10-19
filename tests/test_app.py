@@ -75,3 +75,21 @@ def test_invalid_routes_have_safe_errors(client):
     response = client.get("/verse/999:999")
     assert response.status_code == 404
     assert not re.search(rb"Traceback|DataIntegrityError", response.data)
+
+
+def test_pages_have_no_inline_styles_or_scripts(client):
+    # The CSP allows only 'self' for styles and scripts, so inline ones would be silently dropped.
+    for path in ("/", "/verse/2:282", "/search?q=mercy", "/bookmarks", "/random", "/curation-review"):
+        html = client.get(path).data
+        assert b'style="' not in html, path
+        assert not re.search(rb"<script(?![^>]*\bsrc=)", html), path
+
+
+
+def test_theme_chips_sit_above_results(client):
+    # Themes are one-tap chips under the search box; results must follow straight after.
+    html = client.get("/search?theme=Faith+%26+Belief").data
+    assert html.index(b'class="theme-chips"') < html.index(b'id="results-title"')
+    assert b'aria-current="true">Faith &amp; Belief</a>' in html
+    assert b'Clear theme' in html
+    assert b'Clear theme' not in client.get("/search?q=patience").data
