@@ -96,6 +96,44 @@
     const saved = localStorage.getItem(FONT_KEY) || "medium"; select.value = saved; document.documentElement.style.setProperty("--arabic-size", sizes[saved]);
     select.addEventListener("change", () => { localStorage.setItem(FONT_KEY, select.value); document.documentElement.style.setProperty("--arabic-size", sizes[select.value]); });
   }
+  const SEARCH_PENDING_KEY = "ayah-search-pending";
+  function setupSearchLoading() {
+    const form = document.querySelector("[data-search-form]"); if (!form) return;
+    const status = document.querySelector("[data-search-status]");
+    const start = (message, control) => {
+      document.body.classList.add("page-loading");
+      if (control) control.classList.add("is-loading");
+      if (status) status.textContent = message;
+      try { sessionStorage.setItem(SEARCH_PENDING_KEY, "1"); } catch (_) { /* storage blocked: skip the scroll */ }
+    };
+    form.addEventListener("submit", event => {
+      const query = form.querySelector("input[name=q]").value.trim();
+      if (!query) { event.preventDefault(); form.querySelector("input[name=q]").focus(); return; }
+      const button = form.querySelector("[data-search-submit]");
+      if (button) { button.firstChild.nodeValue = "Searching"; button.setAttribute("aria-disabled", "true"); }
+      start(`Searching for ${query}`, button);
+    });
+    document.querySelectorAll(".theme-chips a").forEach(link => link.addEventListener("click", event => {
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
+      start(link.classList.contains("theme-clear") ? "Clearing theme" : `Loading ${link.textContent}`, link);
+    }));
+    // Returning with the Back button restores the old page from cache; clear the loading look.
+    window.addEventListener("pageshow", event => {
+      if (!event.persisted) return;
+      document.body.classList.remove("page-loading");
+      document.querySelectorAll(".is-loading").forEach(node => node.classList.remove("is-loading"));
+      const button = form.querySelector("[data-search-submit]");
+      if (button) { button.firstChild.nodeValue = "Search"; button.removeAttribute("aria-disabled"); }
+    });
+    // After a search or theme loads, make sure the results are on screen and announced.
+    let pending = false;
+    try { pending = sessionStorage.getItem(SEARCH_PENDING_KEY) === "1"; sessionStorage.removeItem(SEARCH_PENDING_KEY); } catch (_) { /* ignore */ }
+    const heading = document.getElementById("results-title");
+    if (pending && heading) {
+      if (heading.getBoundingClientRect().top > window.innerHeight * 0.75) heading.scrollIntoView({behavior: "smooth", block: "start"});
+      heading.focus({preventScroll: true});
+    }
+  }
   function setupThemeChips() {
     // On phones the chips scroll sideways; bring the selected theme into view.
     const current = document.querySelector('.theme-chips a[aria-current="true"]');
@@ -145,7 +183,7 @@
     try { const data=JSON.parse(await file.text()); if(data.version!==1||!Array.isArray(data.verse_keys)) throw new Error(); const valid=data.verse_keys.filter(v=>/^\d{1,3}:\d{1,3}$/.test(v)); if(replace&&!confirm("Replace all current bookmarks with this file?"))return; writeBookmarks(replace?valid:[...readBookmarks(),...valid]); toast(`${valid.length} bookmarks imported`); renderBookmarks(); } catch(_){ toast("That bookmark file is not valid"); }
   }
   document.addEventListener("DOMContentLoaded", () => {
-    setupTheme(); setupFontSize(); setupThemeChips(); setupAccordions(); setupDisclosures(); setupShareMenu(); updateBookmarkButtons(); renderBookmarks();
+    setupTheme(); setupFontSize(); setupThemeChips(); setupSearchLoading(); setupAccordions(); setupDisclosures(); setupShareMenu(); updateBookmarkButtons(); renderBookmarks();
     document.addEventListener("click", event => { const bookmark=event.target.closest("[data-bookmark]"); if(bookmark) toggleBookmark(bookmark.dataset.bookmark); const copy=event.target.closest("[data-copy]"); if(copy) copyLink(copy.dataset.copy); const share=event.target.closest("[data-share]"); if(share) shareVerse(share.dataset.share); const wa=event.target.closest("[data-share-whatsapp]");if(wa)shareProvider(wa.dataset.shareWhatsapp,"whatsapp");const x=event.target.closest("[data-share-x]");if(x)shareProvider(x.dataset.shareX,"x");const card=event.target.closest("[data-image-card]");if(card)downloadImageCard(card.dataset.imageCard); });
     document.querySelector("[data-export-bookmarks]")?.addEventListener("click",exportBookmarks);
     document.querySelector("[data-import-bookmarks]")?.addEventListener("change",event=>{if(event.target.files[0]) importBookmarks(event.target.files[0]);});

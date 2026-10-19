@@ -5,15 +5,16 @@
   <h1>Search and reflect</h1>
   <p>Search an English phrase, Arabic words, or a reference such as <span class="reference">2:255</span>.</p>
 </section>
-<form class="search-form" action="{{ url_for('pages.search_page') }}" method="get" role="search">
+<form class="search-form" action="{{ url_for('pages.search_page') }}" method="get" role="search" data-search-form>
   <label for="q">Search verses</label>
   <div class="search-row">
     <input id="q" name="q" value="{{ query }}" maxlength="200" placeholder="mercy, guidance, الصبر, 2:255">
-    <button class="button button--primary" type="submit">Search</button>
+    <button class="button button--primary" type="submit" data-search-submit>Search</button>
   </div>
 </form>
 <nav class="theme-chips" aria-labelledby="themes-title">
   <p id="themes-title">Or browse a theme</p>
+  <p class="visually-hidden" role="status" aria-live="polite" data-search-status></p>
   <ul>
     {% for theme in themes %}<li><a href="{{ url_for('pages.search_page', theme=theme) }}"{% if selected_theme == theme %} aria-current="true"{% endif %}>{{ theme }}</a></li>{% endfor %}
     {% if selected_theme %}<li><a class="theme-clear" href="{{ url_for('pages.search_page') }}">Clear theme</a></li>{% endif %}
@@ -24,7 +25,7 @@
 {% block content %}
 {% if query or selected_theme %}
 <section class="reading-section results" aria-live="polite" aria-labelledby="results-title">
-  <div class="section-heading"><h2 id="results-title">{% if selected_theme %}{{ selected_theme }}{% else %}Results for “{{ query }}”{% endif %}</h2><p>{{ total }} found</p></div>
+  <div class="section-heading"><h2 id="results-title" tabindex="-1">{% if selected_theme %}{{ selected_theme }}{% else %}Results for “{{ query }}”{% endif %}</h2><p>{{ total }} found</p></div>
   <div class="section-body">
   {% if results %}
     <div class="result-list">
@@ -37,7 +38,7 @@
         <div class="result-detail" id="result-{{ loop.index }}" hidden>
           <p class="arabic arabic--result" dir="rtl" lang="ar">{{ result.verse.quran_text }}</p>
           <p class="translation">{{ result.verse.translation_text }}</p>
-          {% if result.snippet and result.snippet != result.verse.translation_text %}<p class="snippet">{{ result.snippet }}</p>{% endif %}
+          {% set snippet = result.snippet %}{% if snippet and snippet != result.verse.translation_text %}<p class="snippet">{{ snippet }}</p>{% endif %}
           <div class="result-actions">
             <button class="text-button" type="button" data-bookmark="{{ result.verse.verse_key }}" aria-pressed="false">{{ icon('star') }} Save</button>
             <a class="text-button" href="{{ url_for('pages.verse_page', verse_key=result.verse.verse_key) }}">Read with Tafsir {{ icon('arrow') }}</a>
