@@ -1,18 +1,21 @@
 {% extends "base.html" %}
-{% block content %}
+{% block hero %}
 <section class="page-intro">
-  <p class="eyebrow">Your private collection</p><h1>Saved verses</h1>
-  <p>Bookmarks stay in this browser. Export a copy whenever you wish.</p>
+  <h1>Saved verses</h1>
+  <p>Bookmarks stay in this browser. Export a copy to move them to another device.</p>
 </section>
 <div class="bookmark-toolbar">
-  <button class="button button--quiet" type="button" data-export-bookmarks>Export JSON</button>
-  <label class="button button--quiet file-button">Import JSON<input type="file" accept="application/json,.json" data-import-bookmarks></label>
-  <label class="button button--quiet file-button">Replace from JSON<input type="file" accept="application/json,.json" data-replace-bookmarks></label>
-  <button class="text-button danger" type="button" data-clear-bookmarks>Clear all</button>
+  <button class="button" type="button" data-export-bookmarks>Export JSON</button>
+  <label class="button file-button">Import JSON<input type="file" accept="application/json,.json" data-import-bookmarks></label>
+  <label class="button file-button">Replace from JSON<input type="file" accept="application/json,.json" data-replace-bookmarks></label>
 </div>
+{% endblock %}
+
+{% block content %}
 <div id="bookmarks-container" class="bookmark-list" aria-live="polite">
   <div class="empty-state"><p>Loading saved verses…</p></div>
 </div>
+<p><button class="text-button danger" type="button" data-clear-bookmarks>Clear all saved verses</button></p>
 <template id="bookmark-template">
   <article class="saved-card">
     <header><strong data-surah></strong><a data-link></a></header>

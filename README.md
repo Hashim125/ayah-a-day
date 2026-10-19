@@ -54,6 +54,10 @@ Search and theme APIs accept `limit` (1–50), `offset`, and `include_tafsir=0|1
 
 [`ayah_app/curation.json`](ayah_app/curation.json) contains candidate daily and theme verse lists with `"status": "draft"`. While draft, the daily verse is selected deterministically from all verses and themes use ranked text search. Change the status only after the verse keys and translations receive human review.
 
+## Future work
+
+A mosque TV display (`/display`, with a QR code to each verse) was built and then parked. The code, the reasoning and a restore checklist are in [`docs/future/mosque-display/`](docs/future/mosque-display/README.md).
+
 ## Render deployment
 
 The included [`render.yaml`](render.yaml) installs the pinned dependencies, starts `gunicorn -c gunicorn.conf.py simple_app:app`, and checks `/healthz`. Set `PUBLIC_BASE_URL` to the final Render or custom-domain origin. No database or persistent disk is required.
