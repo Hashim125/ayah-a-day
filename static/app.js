@@ -96,6 +96,11 @@
     const saved = localStorage.getItem(FONT_KEY) || "medium"; select.value = saved; document.documentElement.style.setProperty("--arabic-size", sizes[saved]);
     select.addEventListener("change", () => { localStorage.setItem(FONT_KEY, select.value); document.documentElement.style.setProperty("--arabic-size", sizes[select.value]); });
   }
+  function setupThemeChips() {
+    // On phones the chips scroll sideways; bring the selected theme into view.
+    const current = document.querySelector('.theme-chips a[aria-current="true"]');
+    if (current) current.scrollIntoView({block: "nearest", inline: "center"});
+  }
   function setupAccordions() {
     document.querySelectorAll(".result-summary").forEach(button => button.addEventListener("click", () => {
       const detail = document.getElementById(button.getAttribute("aria-controls")); const open = button.getAttribute("aria-expanded") === "true";
@@ -140,7 +145,7 @@
     try { const data=JSON.parse(await file.text()); if(data.version!==1||!Array.isArray(data.verse_keys)) throw new Error(); const valid=data.verse_keys.filter(v=>/^\d{1,3}:\d{1,3}$/.test(v)); if(replace&&!confirm("Replace all current bookmarks with this file?"))return; writeBookmarks(replace?valid:[...readBookmarks(),...valid]); toast(`${valid.length} bookmarks imported`); renderBookmarks(); } catch(_){ toast("That bookmark file is not valid"); }
   }
   document.addEventListener("DOMContentLoaded", () => {
-    setupTheme(); setupFontSize(); setupAccordions(); setupDisclosures(); setupShareMenu(); updateBookmarkButtons(); renderBookmarks();
+    setupTheme(); setupFontSize(); setupThemeChips(); setupAccordions(); setupDisclosures(); setupShareMenu(); updateBookmarkButtons(); renderBookmarks();
     document.addEventListener("click", event => { const bookmark=event.target.closest("[data-bookmark]"); if(bookmark) toggleBookmark(bookmark.dataset.bookmark); const copy=event.target.closest("[data-copy]"); if(copy) copyLink(copy.dataset.copy); const share=event.target.closest("[data-share]"); if(share) shareVerse(share.dataset.share); const wa=event.target.closest("[data-share-whatsapp]");if(wa)shareProvider(wa.dataset.shareWhatsapp,"whatsapp");const x=event.target.closest("[data-share-x]");if(x)shareProvider(x.dataset.shareX,"x");const card=event.target.closest("[data-image-card]");if(card)downloadImageCard(card.dataset.imageCard); });
     document.querySelector("[data-export-bookmarks]")?.addEventListener("click",exportBookmarks);
     document.querySelector("[data-import-bookmarks]")?.addEventListener("change",event=>{if(event.target.files[0]) importBookmarks(event.target.files[0]);});

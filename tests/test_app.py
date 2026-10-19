@@ -85,8 +85,11 @@ def test_pages_have_no_inline_styles_or_scripts(client):
         assert not re.search(rb"<script(?![^>]*\bsrc=)", html), path
 
 
-def test_search_results_come_before_themes(client):
-    # Results must be visible without scrolling past the twelve theme tiles.
-    for path in ("/search?q=patience", "/search?theme=Faith+%26+Belief"):
-        html = client.get(path).data
-        assert html.index(b'id="results-title"') < html.index(b'id="themes-title"'), path
+
+def test_theme_chips_sit_above_results(client):
+    # Themes are one-tap chips under the search box; results must follow straight after.
+    html = client.get("/search?theme=Faith+%26+Belief").data
+    assert html.index(b'class="theme-chips"') < html.index(b'id="results-title"')
+    assert b'aria-current="true">Faith &amp; Belief</a>' in html
+    assert b'Clear theme' in html
+    assert b'Clear theme' not in client.get("/search?q=patience").data

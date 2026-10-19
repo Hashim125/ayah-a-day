@@ -12,6 +12,13 @@
     <button class="button button--primary" type="submit">Search</button>
   </div>
 </form>
+<nav class="theme-chips" aria-labelledby="themes-title">
+  <p id="themes-title">Or browse a theme</p>
+  <ul>
+    {% for theme in themes %}<li><a href="{{ url_for('pages.search_page', theme=theme) }}"{% if selected_theme == theme %} aria-current="true"{% endif %}>{{ theme }}</a></li>{% endfor %}
+    {% if selected_theme %}<li><a class="theme-clear" href="{{ url_for('pages.search_page') }}">Clear theme</a></li>{% endif %}
+  </ul>
+</nav>
 {% endblock %}
 
 {% block content %}
@@ -53,13 +60,5 @@
 </section>
 {% endif %}
 
-<section class="reading-section themes" aria-labelledby="themes-title">
-  <div class="section-heading"><h2 id="themes-title">Themes</h2><p>Browse verses by subject</p></div>
-  <div class="section-body">
-    <div class="theme-grid">
-      {% for theme in themes %}<a href="{{ url_for('pages.search_page', theme=theme) }}" {% if selected_theme == theme %}aria-current="true"{% endif %}>{{ theme }}</a>{% endfor %}
-    </div>
-    {% if not curation_approved %}<p class="curation-note">Theme collections currently use ranked text matches while their reviewed verse lists await approval. <a href="{{ url_for('pages.curation_review') }}">Review candidates</a>.</p>{% endif %}
-  </div>
-</section>
+{% if not curation_approved %}<p class="curation-note">Theme collections currently use ranked text matches while their reviewed verse lists await approval. <a href="{{ url_for('pages.curation_review') }}">Review candidates</a>.</p>{% endif %}
 {% endblock %}
